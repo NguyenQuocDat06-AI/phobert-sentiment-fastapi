@@ -2,6 +2,10 @@
 
 API phân tích cảm xúc văn bản tiếng Việt sử dụng mô hình PhoBERT.
 
+## Video Demo
+
+[![Video Demo](https://img.youtube.com/vi/h_EUwWVAUfs/maxresdefault.jpg)](https://youtu.be/h_EUwWVAUfs)
+
 ---
 
 ## Thông tin sinh viên

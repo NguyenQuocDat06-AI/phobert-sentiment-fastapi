@@ -1,17 +1,27 @@
 import uvicorn
 from fastapi import FastAPI
 from pydantic import BaseModel, Field
+from contextlib import asynccontextmanager
 from main import Emoji
 
-app = FastAPI()
+emoji_model = None
+model_loaded = False
 
-try:
-    emoji_model = Emoji("wonrax/phobert-base-vietnamese-sentiment")
-    emoji_model.load_model()
-    model_loaded = True
-except Exception as e:
-    print(f"Lỗi khi load model: {e}")
-    model_loaded = False
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    global emoji_model, model_loaded
+    try:
+        emoji_model = Emoji("wonrax/phobert-base-vietnamese-sentiment")
+        emoji_model.load_model()
+        model_loaded = True
+    except Exception as e:
+        print(f"Lỗi khi load model: {e}")
+        model_loaded = False
+    yield
+    # Giải phóng khi ứng dụng tắt
+    emoji_model = None
+
+app = FastAPI(lifespan=lifespan)
 
 class PredictRequest(BaseModel):
     text: str = Field(
@@ -33,9 +43,9 @@ def info():
 @app.get("/health")
 def health_check():
     return {
-        "status": "healthy",
-        "message": "Hệ thống đang hoạt động bình thường!",
-        "model_loaded": True
+        "status": "healthy" if model_loaded else "unhealthy",
+        "message": "Hệ thống đang hoạt động bình thường!" if model_loaded else "Mô hình chưa được load thành công!",
+        "model_loaded": model_loaded
     }
 
 @app.post("/predict")
